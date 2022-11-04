@@ -1,0 +1,8 @@
+[domain]
+  URL = "https://www.whoisds.com/newly-registered-domains"
+  fileTXT = "/domain-names.txt"
+  
+[database]
+  URI = "mongodb://localhost:27017"
+  name = "mydb"
+  collection = "Domain2"

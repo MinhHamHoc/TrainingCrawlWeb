@@ -8,15 +8,24 @@ import (
 	"os"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type Time struct {
+	Year   int    `bson:"year,year"`
+	Month  string `bson:"month,month"`
+	Day    int    `bson:"day,day"`
+	Domain string `bson:"domain,domain`
+}
+
 func Saving(pathFile string, year int, month string, day int) {
 
+	uriMongo := viper.GetString("database.URI")
+
 	//Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	clientOptions := options.Client().ApplyURI(uriMongo)
 
 	//Connect to MongoDb
 	client, err := mongo.Connect(context.TODO(), clientOptions)
@@ -33,7 +42,9 @@ func Saving(pathFile string, year int, month string, day int) {
 		log.Fatal(err)
 	}
 
-	DomainCollection := client.Database("mydb").Collection("domain")
+	nameDatabase := viper.GetString("database.name")
+	nameCollection := viper.GetString("database.collection")
+	DomainCollection := client.Database(nameDatabase).Collection(nameCollection)
 
 	file, err := os.Open(pathFile)
 	if err != nil {
@@ -44,8 +55,8 @@ func Saving(pathFile string, year int, month string, day int) {
 
 	for dataScan.Scan() {
 		line := dataScan.Text()
-		newBson := bson.D{{Key: "Year", Value: year}, {Key: "Month", Value: month}, {Key: "Day", Value: day}, {Key: "Domain", Value: line}}
-		dataMongo, err := DomainCollection.InsertOne(ctx, newBson)
+		dataTime := Time{Year: year, Month: month, Day: day, Domain: line}
+		dataMongo, err := DomainCollection.InsertOne(ctx, dataTime)
 		if err != nil {
 			log.Fatal(err, dataMongo)
 		}
