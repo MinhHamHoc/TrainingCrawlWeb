@@ -1,7 +1,6 @@
-package main
+package configs
 
 import (
-	"Crawl_Web/SaveIntoMongo"
 	"archive/zip"
 	"fmt"
 	"io"
@@ -14,8 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/spf13/viper"
 )
 
 var (
@@ -118,19 +115,9 @@ func unZip(name string) {
 	}
 }
 
-func addViperConfig(path string) {
-	viper.AddConfigPath(path)
-	viper.SetConfigName(path)
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Println(err)
-	}
-}
+func DownloadURL() {
 
-func main() {
-	addViperConfig("config")
-
-	URL := viper.GetString("domain.URL")
+	URL := "https://www.whoisds.com/newly-registered-domains"
 	link := getLinkDomain(URL)
 	fmt.Println("Link: ", link)
 	resp, err := http.Get(link)
@@ -139,16 +126,10 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("Status: ", resp.Status)
-	if resp.StatusCode != 200 {
-		return
-	}
-
 	downloadFromUrl(link)
-	domainName := viper.GetString("domain.fileTXT")
 
 	year, month, day := time.Now().Date()
-	pathFile := strconv.Itoa(year) + "/" + month.String() + "/" + strconv.Itoa(day) + "/" + domainName
-	SaveIntoMongo.Saving(pathFile, year, month.String(), day)
+	pathFile := strconv.Itoa(year) + "/" + month.String() + "/" + strconv.Itoa(day) + "/" + "domain-names.txt"
+	Saving(pathFile, year, month.String(), day)
 
 }
