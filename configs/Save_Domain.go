@@ -14,7 +14,7 @@ import (
 
 var DomainCollection *mongo.Collection = GetCollection(DatabaseConfig, "domain3")
 
-func Saving(pathFile string, year int, month string, day int) {
+func Saving(pathFile, date string) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -28,7 +28,7 @@ func Saving(pathFile string, year int, month string, day int) {
 
 	for dataScan.Scan() {
 		line := dataScan.Text()
-		dataTime := models.Time{Year: year, Month: month, Day: day, Domain: line}
+		dataTime := models.Time{Date: date, Domain: line}
 		dataMongo, err := DomainCollection.InsertOne(ctx, dataTime)
 		if err != nil {
 			log.Fatal(err, dataMongo)

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -16,9 +17,10 @@ import (
 )
 
 var domainCollection *mongo.Collection = configs.GetCollection(configs.DatabaseConfig, "domain3")
+var validate = validator.New()
 
 func GetAllDomain() []primitive.M {
-	cur, err := domainCollection.Find(context.Background(), bson.D{})
+	cur, err := domainCollection.Find(context.Background(), bson.M{})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -52,7 +54,7 @@ func GetADomain(c *fiber.Ctx) error {
 
 	objId, _ := primitive.ObjectIDFromHex(domainId)
 
-	err := domainCollection.FindOne(ctx, bson.M{"id": objId}).Decode(&domain)
+	err := domainCollection.FindOne(ctx, bson.M{"_id": objId}).Decode(&domain)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(responses.DomainResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
@@ -65,18 +67,23 @@ func CreateDomain(c *fiber.Ctx) error {
 	var domain models.Domains
 	defer cancel()
 
+	if err := c.BodyParser(&domain); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(responses.DomainResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"dataParse": err.Error()}})
+	}
+
+	if validationErr := validate.Struct(&domain); validationErr != nil {
+		return c.Status(http.StatusBadRequest).JSON(responses.DomainResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"dataVali": validationErr.Error()}})
+	}
+
 	newDomain := models.Domains{
-		Id:     primitive.NewObjectID(),
-		Year:   domain.Year,
-		Month:  domain.Month,
-		Day:    domain.Day,
+		Date:   domain.Date,
 		Domain: domain.Domain,
 	}
 
 	result, err := domainCollection.InsertOne(ctx, newDomain)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(responses.DomainResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.Status(http.StatusInternalServerError).JSON(responses.DomainResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"dataMongo": err.Error()}})
 	}
 
-	return c.Status(http.StatusCreated).JSON(responses.DomainResponse{Status: http.StatusCreated, Message: "success", Data: &fiber.Map{"data": result}})
+	return c.Status(http.StatusCreated).JSON(responses.DomainResponse{Status: http.StatusCreated, Message: "success", Data: &fiber.Map{"dataReturn": result}})
 }

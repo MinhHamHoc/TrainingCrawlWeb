@@ -129,7 +129,8 @@ func DownloadURL() {
 	downloadFromUrl(link)
 
 	year, month, day := time.Now().Date()
+	date := strconv.Itoa(day) + "/" + month.String() + "/" + strconv.Itoa(year)
 	pathFile := strconv.Itoa(year) + "/" + month.String() + "/" + strconv.Itoa(day) + "/" + "domain-names.txt"
-	Saving(pathFile, year, month.String(), day)
+	Saving(pathFile, date)
 
 }
