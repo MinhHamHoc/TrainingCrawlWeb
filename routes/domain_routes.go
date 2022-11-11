@@ -7,8 +7,10 @@ import (
 )
 
 func DomainRoute(app *fiber.App) {
-	app.Get("/domain", controllers.ReadDomain)
+	app.Get("/domain", controllers.ReadAllDomain)
 	app.Get("/domain/:domainId", controllers.GetADomain)
-	app.Post("/domain/create", controllers.CreateDomain)
+	app.Post("/domain/create", controllers.CreateADomain)
+	app.Delete("domain/:domainId", controllers.DeleteADomain)
+	app.Put("domain/:domainId", controllers.UpdateADomain)
 
 }

@@ -15,7 +15,7 @@ func main() {
 	configs.ConnectDB()
 
 	//download from Web
-	// configs.DownloadURL()
+	configs.DownloadURL()
 
 	//routes
 	routes.DomainRoute(app)
